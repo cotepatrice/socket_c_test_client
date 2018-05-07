@@ -1,0 +1,7 @@
+#ifndef MESSAGE_HEADER_SIZE
+#define MESSAGE_HEADER_SIZE 9
+#endif
+
+#ifndef MESSAGE_RTC_SIZE
+#define MESSAGE_RTC_SIZE 6
+#endif
