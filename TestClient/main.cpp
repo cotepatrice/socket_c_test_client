@@ -8,6 +8,10 @@
 #include <stdint.h> 
 #include "test_rtc.h"
 #include "shared.h"
+#include "authentication.h"
+#include "messageHeader.h"
+#include "commands.h"
+#include "status.h"
 
 
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
@@ -16,7 +20,7 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 
-#define DEFAULT_BUFLEN 512
+#define DEFAULT_BUFLEN 16000
 #define DEFAULT_PORT "5000"
 
 
@@ -31,6 +35,7 @@ int __cdecl main(int argc, char **argv)
 	char recvbuf[DEFAULT_BUFLEN];
 	int iResult;
 	int recvbuflen = DEFAULT_BUFLEN;
+	uint8_t isAuthenticated = 0;
 
 	// Validate the parameters
 	if (argc != 2) {
@@ -88,11 +93,11 @@ int __cdecl main(int argc, char **argv)
 		return 1;
 	}
 
-	//TEST MESSAGE RTC 
-	uint8_t *messageBuffer = NULL;
-	testRtcMessage(messageBuffer);
+	//TEST AUTHENTICATION MESSAGE 
+	uint8_t *authMessageBuffer = NULL;
+	sendAuthenticationMessage(authMessageBuffer);
 
-	iResult = send(ConnectSocket, reinterpret_cast<char*>(messageBuffer), MESSAGE_HEADER_SIZE + MESSAGE_RTC_SIZE, 0);
+	iResult = send(ConnectSocket, reinterpret_cast<char*>(authMessageBuffer), MESSAGE_HEADER_SIZE + AUTHENTICATION_MESSAGE_SIZE, 0);
 	if (iResult == SOCKET_ERROR) {
 		printf("send failed with error: %d\n", WSAGetLastError());
 		closesocket(ConnectSocket);
@@ -102,27 +107,54 @@ int __cdecl main(int argc, char **argv)
 
 	printf("Bytes Sent: %ld\n", iResult);
 
-	// END TEST RTC
+	// END TEST AUTHENTICATION
 
-	// shutdown the connection since no more data will be sent
-	if (iResult != SOCKET_ERROR) {
-		iResult = shutdown(ConnectSocket, SD_SEND);
-	}
-	if (iResult == SOCKET_ERROR) {
-		printf("shutdown failed with error: %d\n", WSAGetLastError());
-		closesocket(ConnectSocket);
-		WSACleanup();
-		return 1;
-	}
-
-	printf("Bytes Sent: %ld\n", iResult);
+	//// shutdown the connection since no more data will be sent
+	//if (iResult != SOCKET_ERROR) {
+	//	iResult = shutdown(ConnectSocket, SD_SEND);
+	//}
+	//if (iResult == SOCKET_ERROR) {
+	//	printf("shutdown failed with error: %d\n", WSAGetLastError());
+	//	closesocket(ConnectSocket);
+	//	WSACleanup();
+	//	return 1;
+	//}
 
 	// Receive until the peer closes the connection
 	do {
 
 		iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
-		if (iResult > 0)
+		if (iResult > 0) {
+			MessageHeader messageHeader = getHeaderFromBuffer(recvbuf);
+			printf("Status : %d\n", messageHeader.Status);
+			printf("Command : %d\n", messageHeader.Command);
+			printf("InternalID : %d\n", messageHeader.InternalID);
 			printf("Bytes received: %d\n", iResult);
+
+			if (messageHeader.Command == Authenticate && messageHeader.Status == ResponseSuccess) {
+				isAuthenticated = 1;
+
+				//TEST MESSAGE RTC 
+				uint8_t *rtcMessageBuffer = NULL;
+				testRtcMessage(rtcMessageBuffer);
+
+				iResult = send(ConnectSocket, reinterpret_cast<char*>(rtcMessageBuffer), MESSAGE_HEADER_SIZE + MESSAGE_RTC_SIZE, 0);
+				if (iResult == SOCKET_ERROR) {
+					printf("send failed with error: %d\n", WSAGetLastError());
+					closesocket(ConnectSocket);
+					WSACleanup();
+					return 1;
+				}
+
+				printf("Bytes Sent: %ld\n", iResult);
+				// END TEST RTC
+
+				// shutdown the connection since no more data will be sent
+				if (iResult != SOCKET_ERROR) {
+					iResult = shutdown(ConnectSocket, SD_SEND);
+				}
+			}
+		}
 		else if (iResult == 0)
 			printf("Connection closed\n");
 		else

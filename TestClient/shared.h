@@ -2,6 +2,14 @@
 #define MESSAGE_HEADER_SIZE 9
 #endif
 
+#ifndef AUTHENTICATION_MESSAGE_SIZE
+#define AUTHENTICATION_MESSAGE_SIZE 27
+#endif
+
 #ifndef MESSAGE_RTC_SIZE
 #define MESSAGE_RTC_SIZE 6
+#endif
+
+#ifndef SENSORS_COUNT
+#define SENSORS_COUNT 6
 #endif

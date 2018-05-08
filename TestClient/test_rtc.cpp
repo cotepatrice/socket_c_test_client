@@ -10,7 +10,6 @@
 
 void testRtcMessage(uint8_t *&rtcMessage) {
 
-	int iResult;
 	MessageHeader messageHeader;
 	messageHeader.Status = (uint8_t)(0);
 	messageHeader.Command = (uint8_t)(114);

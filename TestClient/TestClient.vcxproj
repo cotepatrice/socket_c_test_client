@@ -115,13 +115,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="authentication.cpp" />
+    <ClCompile Include="authentication_message.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="messageHeader.cpp" />
     <ClCompile Include="test_rtc.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="authentication.h" />
+    <ClInclude Include="authentication_message.h" />
+    <ClInclude Include="commands.h" />
     <ClInclude Include="messageHeader.h" />
     <ClInclude Include="rtcMessage.h" />
     <ClInclude Include="shared.h" />
+    <ClInclude Include="status.h" />
     <ClInclude Include="test_rtc.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
